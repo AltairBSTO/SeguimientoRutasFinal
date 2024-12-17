@@ -3,19 +3,57 @@
     android:layout_height="match_parent">
 
     <!-- Fragmento del mapa -->
+
+    <!-- Botón para iniciar ruta -->
+
+    <!-- Botón para detener ruta -->
+
+    <!-- Botón para cerrar sesión -->
+
     <fragment
         android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:name="com.google.android.gms.maps.SupportMapFragment" />
+        android:layout_height="match_parent" />
 
-    <!-- Botón flotante -->
+    <Button
+        android:id="@+id/btnIniciarRuta"
+        android:layout_width="108dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="14dp"
+        android:text="Iniciar Ruta" />
+
+    <Button
+        android:id="@+id/btnDetenerRuta"
+        android:layout_width="121dp"
+        android:layout_height="59dp"
+        android:layout_alignParentBottom="true"
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="17dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="9dp"
+        android:layout_toStartOf="@+id/btnCerrarSesion"
+        android:layout_toEndOf="@+id/btnIniciarRuta"
+        android:text="Detener Ruta" />
+
     <Button
         android:id="@+id/btnCerrarSesion"
-        android:layout_width="wrap_content"
+        android:layout_width="104dp"
         android:layout_height="wrap_content"
-        android:text="Cerrar Sesión"
+        android:layout_alignParentEnd="true"
         android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_margin="16dp" />
+        android:layout_marginStart="16dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="29dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="17dp"
+        android:text="Cerrar Sesión" />
 </RelativeLayout>
