@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "106611754468",
+    "project_id": "seguimientorutas-114d2",
+    "storage_bucket": "seguimientorutas-114d2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:106611754468:android:105da297ff5dfc37ac73f1",
+        "android_client_info": {
+          "package_name": "com.bsto.seguimientorutas"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8rnk4waq7ITaP3XpAreL39WNghXJasIs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
