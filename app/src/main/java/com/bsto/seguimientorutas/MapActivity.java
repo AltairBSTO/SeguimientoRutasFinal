@@ -5,18 +5,19 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
-
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
-import android.location.Location;
+import android.location.Geocoder;
+import android.location.Address;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -42,9 +43,7 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
     private FusedLocationProviderClient fusedLocationClient;
     private FirebaseAuth mAuth;
     private FirebaseFirestore db;
-
-    private Button btnIniciarRuta, btnDetenerRuta, btnCerrarSesion;
-
+    private Button btnIniciarRuta, btnDetenerRuta, btnCerrarSesion, btnVerHistorial;
     private boolean isTracking = false;
     private List<LatLng> routePoints = new ArrayList<>();
     private String routeStartTime;
@@ -70,41 +69,41 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         btnIniciarRuta = findViewById(R.id.btnIniciarRuta);
         btnDetenerRuta = findViewById(R.id.btnDetenerRuta);
         btnCerrarSesion = findViewById(R.id.btnCerrarSesion);
+        btnVerHistorial = findViewById(R.id.btnVerHistorial); // Botón para ver historial
 
         btnIniciarRuta.setOnClickListener(v -> iniciarRuta());
         btnDetenerRuta.setOnClickListener(v -> detenerRutaYGuardar());
         btnCerrarSesion.setOnClickListener(v -> cerrarSesion());
+
+        // Configurar el botón para ver el historial
+        btnVerHistorial.setOnClickListener(v -> {
+            Intent intent = new Intent(MapActivity.this, HistorialRutasActivity.class);
+            startActivity(intent); // Ir a la actividad del historial
+        });
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
 
-        // Verificar si se tienen los permisos de ubicación
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // Solicitar permisos si no están concedidos
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
         } else {
-            // Habilitar ubicación si ya se tienen permisos
             habilitarUbicacion();
         }
     }
 
     private void habilitarUbicacion() {
-        // Verificar permisos antes de habilitar la ubicación
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED &&
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
 
-        // Habilitar la capa de ubicación en el mapa
         mMap.setMyLocationEnabled(true);
 
-        // Obtener la última ubicación conocida del usuario
         fusedLocationClient.getLastLocation()
                 .addOnSuccessListener(this, location -> {
                     if (location != null) {
-                        // Mostrar la ubicación actual en el mapa
                         LatLng ubicacionActual = new LatLng(location.getLatitude(), location.getLongitude());
                         mMap.addMarker(new MarkerOptions().position(ubicacionActual).title("Tu ubicación actual"));
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(ubicacionActual, 15f));
@@ -123,10 +122,8 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
 
         if (requestCode == LOCATION_PERMISSION_REQUEST_CODE) {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Si el permiso es concedido, habilitar la ubicación
                 habilitarUbicacion();
             } else {
-                // Si el permiso es denegado, mostrar un mensaje
                 Toast.makeText(this, "Permiso de ubicación necesario para usar el mapa", Toast.LENGTH_LONG).show();
             }
         }
@@ -139,20 +136,17 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         }
 
         isTracking = true;
-        routePoints.clear(); // Limpiar cualquier ruta anterior
+        routePoints.clear();
         routeStartTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).format(new Date());
 
-        // Iniciar la actualización periódica de la ubicación
         startLocationUpdates();
-
         Toast.makeText(this, "Ruta iniciada", Toast.LENGTH_SHORT).show();
     }
 
     private void startLocationUpdates() {
-        // Configurar el LocationRequest para obtener actualizaciones periódicas
         LocationRequest locationRequest = LocationRequest.create();
-        locationRequest.setInterval(5000); // Intervalo de 5 segundos
-        locationRequest.setFastestInterval(2000); // Intervalo más rápido de 2 segundos
+        locationRequest.setInterval(5000);
+        locationRequest.setFastestInterval(2000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 
         locationCallback = new LocationCallback() {
@@ -160,13 +154,11 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             public void onLocationResult(LocationResult locationResult) {
                 super.onLocationResult(locationResult);
                 if (locationResult != null) {
-                    for (Location location : locationResult.getLocations()) {
+                    for (android.location.Location location : locationResult.getLocations()) {
                         if (location != null) {
-                            // Agregar el punto a la lista de coordenadas
                             LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
                             routePoints.add(currentLatLng);
 
-                            // Opcional: Puedes mostrar el marcador y mover la cámara a la nueva ubicación
                             mMap.addMarker(new MarkerOptions().position(currentLatLng).title("Ubicación Actual"));
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
                         }
@@ -175,7 +167,6 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
             }
         };
 
-        // Iniciar las actualizaciones de la ubicación
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             fusedLocationClient.requestLocationUpdates(locationRequest, locationCallback, null);
         }
@@ -188,51 +179,60 @@ public class MapActivity extends FragmentActivity implements OnMapReadyCallback 
         }
 
         isTracking = false;
-
-        // Detener las actualizaciones de ubicación
         fusedLocationClient.removeLocationUpdates(locationCallback);
 
-        // Dibujar la ruta en el mapa
         PolylineOptions polylineOptions = new PolylineOptions().addAll(routePoints).clickable(false);
         mMap.addPolyline(polylineOptions);
 
-        // Guardar la ruta en Firestore
-        guardarRutaEnFirestore();
-
-        Toast.makeText(this, "Ruta detenida y guardada", Toast.LENGTH_SHORT).show();
+        // Mostrar un cuadro de diálogo para ingresar el nombre de la ruta
+        mostrarDialogoParaNombreRuta();
     }
 
+    private void mostrarDialogoParaNombreRuta() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Nombre de la Ruta");
 
-    private void guardarRutaEnFirestore() {
+        final EditText input = new EditText(this);
+        builder.setView(input);
+
+        builder.setPositiveButton("Aceptar", (dialog, which) -> {
+            String nombreRuta = input.getText().toString();
+            if (!nombreRuta.isEmpty()) {
+                guardarRutaEnFirestore(nombreRuta);
+            } else {
+                // Si no se ingresa un nombre, usar el nombre por defecto
+                guardarRutaEnFirestore("Ruta " + routeStartTime);
+            }
+        });
+
+        builder.setNegativeButton("Cancelar", (dialog, which) -> dialog.cancel());
+
+        builder.show();
+    }
+
+    private void guardarRutaEnFirestore(String nombreRuta) {
         FirebaseUser user = mAuth.getCurrentUser();
         if (user == null) {
             Toast.makeText(this, "Usuario no autenticado", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Convertir las coordenadas de LatLng a GeoPoint
         List<GeoPoint> geoPoints = new ArrayList<>();
         for (LatLng point : routePoints) {
             geoPoints.add(new GeoPoint(point.latitude, point.longitude));
         }
 
-        // Crear la ruta en formato Firestore
         Route route = new Route(
-                "Ruta " + routeStartTime,
+                nombreRuta, // Nombre personalizado de la ruta
                 user.getUid(),
                 routeStartTime,
                 geoPoints
         );
 
-        // Guardar la ruta en la colección "rutas" de Firestore
         db.collection("rutas")
                 .add(route)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(this, "Ruta guardada en Firestore", Toast.LENGTH_SHORT).show();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Error al guardar la ruta: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+                .addOnSuccessListener(documentReference -> Toast.makeText(this, "Ruta guardada en Firestore", Toast.LENGTH_SHORT).show())
+                .addOnFailureListener(e -> Toast.makeText(this, "Error al guardar la ruta: " + e.getMessage(), Toast.LENGTH_LONG).show());
     }
 
     private void cerrarSesion() {

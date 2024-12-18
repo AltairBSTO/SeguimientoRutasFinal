@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- Botón para volver -->
+    <Button
+        android:id="@+id/btnVolver"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:layout_margin="16dp"
+        android:text="Volver"
+        android:backgroundTint="#51C308"
+        android:textColor="#FFFFFF" />
+
+    <!-- Lista para mostrar el historial de rutas -->
+    <ListView
+        android:id="@+id/listViewHistorial"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_below="@id/btnVolver"
+        android:layout_alignParentBottom="true"
+        android:padding="16dp" />
+
+    <!-- TextView para mostrar los detalles de la ruta seleccionada -->
+    <TextView
+        android:id="@+id/textViewDetallesRuta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/listViewHistorial"
+        android:padding="16dp"
+        android:text="Detalles de la ruta"
+        android:textSize="16sp"
+        android:visibility="gone" /> <!-- Inicialmente invisible -->
+</RelativeLayout>

@@ -13,7 +13,6 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.firestore.FirebaseFirestore;
 
 public class registroApp extends AppCompatActivity {
 
@@ -21,7 +20,6 @@ public class registroApp extends AppCompatActivity {
     private Button registerButton;
 
     private FirebaseAuth mAuth;
-    private FirebaseFirestore db;
 
     // TextViews para mostrar los requisitos de la contraseña
     private TextView uppercaseTextView, numberTextView, specialCharTextView;
@@ -31,9 +29,8 @@ public class registroApp extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_registro_app);
 
-        // Inicializar FirebaseAuth y Firestore
+        // Inicializar FirebaseAuth
         mAuth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance();
 
         // Inicializar las vistas
         emailEditText = findViewById(R.id.emailEditText);
@@ -117,39 +114,15 @@ public class registroApp extends AppCompatActivity {
         mAuth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        FirebaseUser user = mAuth.getCurrentUser();
-                        if (user != null) {
-                            // Guardar datos del usuario en Firestore
-                            saveUserDataToFirestore(user.getUid(), username, user.getEmail());
-                        }
+                        // Si el registro es exitoso, redirigir al mapa
+                        goToMapActivity();
                     } else {
                         // Obtener el error específico de Firebase
                         String errorMessage = task.getException() != null ? task.getException().getMessage() : "Error desconocido";
                         Toast.makeText(this, "Error en el registro: " + errorMessage, Toast.LENGTH_LONG).show();
                     }
                 });
-
     }
-
-
-    private void saveUserDataToFirestore(String uid, String username, String email) {
-        // Crear un objeto User con los datos del registro
-        User user = new User(username, email);
-
-        // Guardar los datos en Firestore en la colección "users"
-        db.collection("users").document(uid)
-                .set(user) // Guardamos el objeto 'user' en Firestore
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(this, "Usuario registrado con éxito", Toast.LENGTH_SHORT).show();
-                    // Redirigir al mapa
-                    goToMapActivity();
-                })
-                .addOnFailureListener(e -> {
-                    // Mostrar un mensaje si falla
-                    Toast.makeText(this, "Error al guardar los datos en Firestore: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
-    }
-
 
     private void goToMapActivity() {
         // Redirigir al mapa
